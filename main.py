@@ -1070,32 +1070,40 @@ class FF_CLIENT(threading.Thread):
 
                 except Exception as e:
                     print(f"Error in /glori command: {e}")
-                        def GET_PAYLOAD_BY_DATA(self,JWT_TOKEN , NEW_ACCESS_TOKEN,date):
+
+    # -----------------------------------------------------------
+    # PASTE THIS IN THE EMPTY SPACE
+    # -----------------------------------------------------------
+
+    def GET_PAYLOAD_BY_DATA(self, JWT_TOKEN, NEW_ACCESS_TOKEN, date):
         token_payload_base64 = JWT_TOKEN.split('.')[1]
         token_payload_base64 += '=' * ((4 - len(token_payload_base64) % 4) % 4)
         decoded_payload = base64.urlsafe_b64decode(token_payload_base64).decode('utf-8')
         decoded_payload = json.loads(decoded_payload)
+        
         NEW_EXTERNAL_ID = decoded_payload['external_id']
         SIGNATURE_MD5 = decoded_payload['signature_md5']
+        
         now = datetime.now()
-        now =str(now)[:len(str(now))-7]
-        formatted_time = date
-        
-        # YEH HAI UPDATED HEX STRING (Version 1.118.1 + New Headers)
+        now_str = str(now)
+        now_str = now_str[:len(now_str)-7]
+
+        # CORRECT HEX STRING (Version 1.118.1)
         payload = bytes.fromhex("1a13323032352d30372d30323031313a30323a3531220966726565206669726528013a07312e3131382e31222c416e64726f6964204f53203131202f204150492d33302028525031412e3230303732302e3031322f47393931425858553241554636294a0848616e6468656c645207416e64726f69645a0457494649609392d3c20772033432307a215175616c636f6d6d20536e6170647261676f6e20383838207c203820436f7265788001d33b8a010f416472656e6f2028544d29203636309201164f70656e474c20455320332e32205640303530322e309a012c416e64726f69647c65306336653534662d313233342d353637382d396162632d646566303132333435363738a201093132372e302e302e31aa0102656eb201203939366136323964626364623339363462653662363937386635643831346462ba010134c2010848616e6468656c64ca01064a696f203447ea014066663930633037656239383135616633306134336234613966363031393531366530653463373033623434303932353136643064656661346365663531663261f00101ca02064a696f203447d2020457494649ca03203734323862323533646566633136343031386336303461316562626665626466e003c0fa06e803e8fb03f003c0fa06f803e8fb038804e8fb038804c0fa069004e8fb039804c0fa06c80403d204262f646174612f6170702f636f6d2e6474732e667265656669726574682d312f6c69622f61726d3634e00401ea044835623839326161616264363838653537316636383830353331313861313632627c2f646174612f6170702f636f6d2e6474732e667265656669726574682d312f626173652e61706bf00403f804028a050236349a05094f70656e474c455333a805ff7fc00504e005dac901ea0507616e64726f6964f205008806f9dba1349006019a060130a2060134b2060134")
-        
-        # The timestamp in the payload is hardcoded for a future date. It's replaced with the current time.
-        payload = payload.replace(b"2025-07-02 11:02:51", str(now).encode())
+
+        payload = payload.replace(b"2025-07-02 11:02:51", str(now_str).encode())
         payload = payload.replace(b"ff90c07eb9815af30a43b4a9f6019516e0e4c703b44092516d0defa4cef51f2a", NEW_ACCESS_TOKEN.encode("UTF-8"))
         payload = payload.replace(b"996a629dbcdb3964be6b6978f5d814db", NEW_EXTERNAL_ID.encode("UTF-8"))
         payload = payload.replace(b"7428b253defc164018c604a1ebbfebdf", SIGNATURE_MD5.encode("UTF-8"))
+        
         PAYLOAD = payload.hex()
         PAYLOAD = encrypt_api(PAYLOAD)
         PAYLOAD = bytes.fromhex(PAYLOAD)
+        
         whisper_ip, whisper_port, online_ip, online_port = self.GET_LOGIN_DATA(JWT_TOKEN , PAYLOAD)
         return whisper_ip, whisper_port, online_ip, online_port
-    
-    def dec_to_hex(ask):
+
+    def dec_to_hex(self, ask):
         ask_result = hex(ask)
         final_result = str(ask_result)[2:]
         if len(final_result) == 1:
@@ -1103,22 +1111,25 @@ class FF_CLIENT(threading.Thread):
             return final_result
         else:
             return final_result
-    def convert_to_hex(PAYLOAD):
+
+    def convert_to_hex(self, PAYLOAD):
         hex_payload = ''.join([f'{byte:02x}' for byte in PAYLOAD])
         return hex_payload
-    def convert_to_bytes(PAYLOAD):
+
+    def convert_to_bytes(self, PAYLOAD):
         payload = bytes.fromhex(PAYLOAD)
         return payload
+
     def GET_LOGIN_DATA(self, JWT_TOKEN, PAYLOAD):
+        print("[DEBUG] GET_LOGIN_DATA called...")
         url = "https://client.ind.freefiremobile.com/GetLoginData"
         headers = {
             'Expect': '100-continue',
             'Authorization': f'Bearer {JWT_TOKEN}',
-            'X-Unity-Version': '2018.4.11f1', # Updated from New File logic
+            'X-Unity-Version': '2018.4.11f1',
             'X-GA': 'v1 1',
             'ReleaseVersion': 'OB51',
             'Content-Type': 'application/x-www-form-urlencoded',
-            # Updated User-Agent from main (2).py
             'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 11; ASUS_Z01QD Build/PI)',
             'Host': 'client.ind.freefiremobile.com',
             'Connection': 'close',
@@ -1127,87 +1138,99 @@ class FF_CLIENT(threading.Thread):
         
         max_retries = 3
         attempt = 0
-
         while attempt < max_retries:
             try:
-                response = requests.post(url, headers=headers, data=PAYLOAD,verify=False)
+                response = requests.post(url, headers=headers, data=PAYLOAD, verify=False, timeout=15)
                 response.raise_for_status()
                 x = response.content.hex()
                 json_result = get_available_room(x)
                 parsed_data = json.loads(json_result)
-                print(parsed_data)
                 
-                whisper_address = parsed_data['32']['data']
-                online_address = parsed_data['14']['data']
-                online_ip = online_address[:len(online_address) - 6]
-                whisper_ip = whisper_address[:len(whisper_address) - 6]
-                online_port = int(online_address[len(online_address) - 5:])
-                whisper_port = int(whisper_address[len(whisper_address) - 5:])
-                return whisper_ip, whisper_port, online_ip, online_port
-            
-            except requests.RequestException as e:
-                print(f"Request failed: {e}. Attempt {attempt + 1} of {max_retries}. Retrying...")
+                if '32' in parsed_data and '14' in parsed_data:
+                    whisper_address = parsed_data['32']['data']
+                    online_address = parsed_data['14']['data']
+                    online_ip = online_address[:len(online_address) - 6]
+                    whisper_ip = whisper_address[:len(whisper_address) - 6]
+                    online_port = int(online_address[len(online_address) - 5:])
+                    whisper_port = int(whisper_address[len(whisper_address) - 5:])
+                    return whisper_ip, whisper_port, online_ip, online_port
+                else:
+                    return None, None, None, None
+            except requests.RequestException:
                 attempt += 1
                 time.sleep(2)
-
-        print("Failed to get login data after multiple attempts.")
         return None, None, None, None
 
-    def guest_token(self,uid , password):
+    def guest_token(self, uid, password):
         url = "https://100067.connect.garena.com/oauth/guest/token/grant"
-        headers = {"Host": "100067.connect.garena.com","User-Agent": "GarenaMSDK/4.0.19P4(G011A ;Android 10;en;EN;)","Content-Type": "application/x-www-form-urlencoded","Accept-Encoding": "gzip, deflate, br","Connection": "close",}
-        data = {"uid": f"{uid}","password": f"{password}","response_type": "token","client_type": "2","client_secret": "2ee44819e9b4598845141067b281621874d0d5d7af9d8f7e00c1e54715b7d1e3","client_id": "100067",}
-        response = requests.post(url, headers=headers, data=data)
-        data = response.json()
-        NEW_ACCESS_TOKEN = data['access_token']
-        NEW_OPEN_ID = data['open_id']
-        OLD_ACCESS_TOKEN = "ff90c07eb9815af30a43b4a9f6019516e0e4c703b44092516d0defa4cef51f2a"
-        OLD_OPEN_ID = "996a629dbcdb3964be6b6978f5d814db"
-        time.sleep(0.2)
-        data = self.TOKEN_MAKER(OLD_ACCESS_TOKEN , NEW_ACCESS_TOKEN , OLD_OPEN_ID , NEW_OPEN_ID,uid)
-        return(data)
-            def TOKEN_MAKER(self,OLD_ACCESS_TOKEN , NEW_ACCESS_TOKEN , OLD_OPEN_ID , NEW_OPEN_ID,id):
         headers = {
-            'X-Unity-Version': '2018.4.11f1', # Updated
+            "Host": "100067.connect.garena.com",
+            "User-Agent": "GarenaMSDK/4.0.19P4(G011A ;Android 10;en;EN;)",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "close"
+        }
+        data = {
+            "uid": f"{uid}",
+            "password": f"{password}",
+            "response_type": "token",
+            "client_type": "2",
+            "client_secret": "2ee44819e9b4598845141067b281621874d0d5d7af9d8f7e00c1e54715b7d1e3",
+            "client_id": "100067"
+        }
+        try:
+            response = requests.post(url, headers=headers, data=data, timeout=10)
+            data = response.json()
+            NEW_ACCESS_TOKEN = data.get('access_token')
+            NEW_OPEN_ID = data.get('open_id')
+            
+            if not NEW_ACCESS_TOKEN:
+                return False
+
+            OLD_ACCESS_TOKEN = "ff90c07eb9815af30a43b4a9f6019516e0e4c703b44092516d0defa4cef51f2a"
+            OLD_OPEN_ID = "996a629dbcdb3964be6b6978f5d814db"
+            time.sleep(0.2)
+            return self.TOKEN_MAKER(OLD_ACCESS_TOKEN, NEW_ACCESS_TOKEN, OLD_OPEN_ID, NEW_OPEN_ID, uid)
+        except Exception:
+            return False
+
+    def TOKEN_MAKER(self, OLD_ACCESS_TOKEN, NEW_ACCESS_TOKEN, OLD_OPEN_ID, NEW_OPEN_ID, id):
+        headers = {
+            'X-Unity-Version': '2018.4.11f1',
             'ReleaseVersion': 'OB51',
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-GA': 'v1 1',
             'Content-Length': '928',
-            # Updated User-Agent from main (2).py
             'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 11; ASUS_Z01QD Build/PI)',
             'Host': 'loginbp.common.ggbluefox.com',
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip'
         }
-        # ... baaki code same rahega ...
-        # (Niche ki lines copy-paste karne ki zarurat nahi, bas headers update karo)
-        data = bytes.fromhex('1a13323032352d30372d30323031313a30323a3531220966726565206669726528013a07312e3131342e32422c416e64726f6964204f5320372e312e32202f204150492d323320284e32473438482f373030323530323234294a0848616e6468656c645207416e64726f69645a045749464960c00c68840772033332307a1f41524d7637205646507633204e454f4e20564d48207c2032343635207c203480019a1b8a010f416472656e6f2028544d292036343092010d4f70656e474c20455320332e319a012b476f6f676c657c31663361643662372d636562342d343934622d383730622d623164616364373230393131a2010c3139372e312e31322e313335aa0102656eb201203939366136323964626364623339363462653662363937386635643831346462ba010134c2010848616e6468656c64ca011073616d73756e6720534d2d473935354eea014066663930633037656239383135616633306134336234613966363031393531366530653463373033623434303932353136643064656661346365663531663261f00101ca0207416e64726f6964d2020457494649ca03203734323862323533646566633136343031386336303461316562626665626466e003daa907e803899b07f003bf0ff803ae088004999b078804daa9079004999b079804daa907c80403d204262f646174612f6170702f636f6d2e6474732e667265656669726574682d312f6c69622f61726de00401ea044832303837663631633139663537663261663465376665666630623234643964397c2f646174612f6170702f636f6d2e6474732e667265656669726574682d312f626173652e61706bf00403f804018a050233329a050a32303139313138363933a80503b205094f70656e474c455332b805ff7fc00504e005dac901ea0507616e64726f6964f2055c4b71734854394748625876574c6668437950416c52526873626d43676542557562555551317375746d525536634e30524f3751453141486e496474385963784d614c575437636d4851322b7374745279377830663935542b6456593d8806019006019a060134a2060134b2061e40001147550d0c074f530b4d5c584d57416657545a065f2a091d6a0d5033')
-        data = data.replace(OLD_OPEN_ID.encode(),NEW_OPEN_ID.encode())
-        data = data.replace(OLD_ACCESS_TOKEN.encode() , NEW_ACCESS_TOKEN.encode())
-        hex = data.hex()
+        
+        data = bytes.fromhex('1a13323032352d30372d30323031313a30323a3531220966726565206669726528013a07312e3131382e31222c416e64726f6964204f53203131202f204150492d33302028525031412e3230303732302e3031322f47393931425858553241554636294a0848616e6468656c645207416e64726f69645a0457494649609392d3c20772033432307a215175616c636f6d6d20536e6170647261676f6e20383838207c203820436f7265788001d33b8a010f416472656e6f2028544d29203636309201164f70656e474c20455320332e32205640303530322e309a012c416e64726f69647c65306336653534662d313233342d353637382d396162632d646566303132333435363738a201093132372e302e302e31aa0102656eb201203939366136323964626364623339363462653662363937386635643831346462ba010134c2010848616e6468656c64ca01064a696f203447ea014066663930633037656239383135616633306134336234613966363031393531366530653463373033623434303932353136643064656661346365663531663261f00101ca02064a696f203447d2020457494649ca03203734323862323533646566633136343031386336303461316562626665626466e003c0fa06e803e8fb03f003c0fa06f803e8fb038804e8fb038804c0fa069004e8fb039804c0fa06c80403d204262f646174612f6170702f636f6d2e6474732e667265656669726574682d312f6c69622f61726d3634e00401ea044835623839326161616264363838653537316636383830353331313861313632627c2f646174612f6170702f636f6d2e6474732e667265656669726574682d312f626173652e61706bf00403f804028a050236349a05094f70656e474c455333a805ff7fc00504e005dac901ea0507616e64726f6964f205008806f9dba1349006019a060130a2060134b2060134')
+        
+        data = data.replace(OLD_OPEN_ID.encode(), NEW_OPEN_ID.encode())
+        data = data.replace(OLD_ACCESS_TOKEN.encode(), NEW_ACCESS_TOKEN.encode())
         d = encrypt_api(data.hex())
         Final_Payload = bytes.fromhex(d)
+        
         URL = "https://loginbp.ggblueshark.com/MajorLogin"
 
-        RESPONSE = requests.post(URL, headers=headers, data=Final_Payload,verify=False)
-        
-        combined_timestamp, key, iv, BASE64_TOKEN = self.parse_my_message(RESPONSE.content)
-        if RESPONSE.status_code == 200:
-            if len(RESPONSE.text) < 10:
+        try:
+            RESPONSE = requests.post(URL, headers=headers, data=Final_Payload, verify=False, timeout=15)
+            combined_timestamp, key, iv, BASE64_TOKEN = self.parse_my_message(RESPONSE.content)
+            if RESPONSE.status_code == 200:
+                if len(RESPONSE.text) < 10:
+                    return False
+                whisper_ip, whisper_port, online_ip, online_port = self.GET_PAYLOAD_BY_DATA(BASE64_TOKEN, NEW_ACCESS_TOKEN, 1)
+                self.key = key
+                self.iv = iv
+                print(f"[SUCCESS] Key: {key}, IV: {iv}")
+                return(BASE64_TOKEN, key, iv, combined_timestamp, whisper_ip, whisper_port, online_ip, online_port)
+            else:
                 return False
-            whisper_ip, whisper_port, online_ip, online_port =self.GET_PAYLOAD_BY_DATA(BASE64_TOKEN,NEW_ACCESS_TOKEN,1)
-            self.key = key
-            self.iv = iv
-            print(key, iv)
-            return(BASE64_TOKEN, key, iv, combined_timestamp, whisper_ip, whisper_port, online_ip, online_port)
-        else:
-            return False
-            whisper_ip, whisper_port, online_ip, online_port =self.GET_PAYLOAD_BY_DATA(BASE64_TOKEN,NEW_ACCESS_TOKEN,1)
-            self.key = key
-            self.iv = iv
-            print(key, iv)
-            return(BASE64_TOKEN, key, iv, combined_timestamp, whisper_ip, whisper_port, online_ip, online_port)
-        else:
+        except Exception as e:
+            print(f"[ERROR] TOKEN_MAKER failed: {e}")
             return False
     
     def time_to_seconds(hours, minutes, seconds):
