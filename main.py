@@ -445,7 +445,14 @@ class FF_CLIENT(threading.Thread):
         self.password = password
         self.key = None
         self.iv = None
-        self.get_tok()
+        self.daemon = True # Auto-close fix
+
+    def run(self):
+        print(f"[START] Starting Bot ID: {self.id}")
+        try:
+            self.get_tok()
+        except Exception as e:
+            print(f"[CRASH] Bot {self.id} crashed: {e}")
 
     def parse_my_message(self, serialized_data):
       try:
@@ -468,7 +475,7 @@ class FF_CLIENT(threading.Thread):
         return combined_timestamp, self.key, self.iv, BASE64_TOKEN
 
       except Exception as e:
-        print(f"Error parsing message: {e}")
+        # print(f"Error parsing message: {e}")
         return 0, None, None, ""
         
     def nmnmmmmn(self, data):
