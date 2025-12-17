@@ -1455,15 +1455,18 @@ class FF_CLIENT(threading.Thread):
         return None, None, None
         
 # ==========================================
-# PASTE THIS AT THE VERY BOTTOM OF YOUR FILE
-# (Replace everything from 'with open...' to the end)
+# PASTE THIS AT THE VERY BOTTOM OF main.py
+# (Is code me Server aur Bots dono sath challenge)
 # ==========================================
 
-# --- DUMMY SERVER TO KEEP RENDER HAPPY ---
+# Dummy Server Function
 def start_dummy_server():
     try:
+        # Port 8080 or Render's provided PORT
         PORT = int(os.environ.get("PORT", 8080))
         Handler = http.server.SimpleHTTPRequestHandler
+        # Allow reusing the address to prevent "Address already in use" errors
+        socketserver.TCPServer.allow_reuse_address = True
         with socketserver.TCPServer(("", PORT), Handler) as httpd:
             print(f"[SERVER] Dummy server running on port {PORT}")
             httpd.serve_forever()
@@ -1472,12 +1475,16 @@ def start_dummy_server():
 
 if __name__ == "__main__":
     
-    # Start Dummy Server in Background
+    # 1. Start Dummy Server in a Separate Thread (Background)
+    #    (Ye sabse jaruri line hai - Server background me chalega)
     server_thread = threading.Thread(target=start_dummy_server)
-    server_thread.daemon = True
+    server_thread.daemon = True 
     server_thread.start()
+    
+    print("[INFO] Waiting 2 seconds for server to start...")
+    time.sleep(2)
 
-    # --- YAHAN TUMHARE DIYE HUE SAARE ACCOUNTS HAIN ---
+    # 2. Define Accounts
     ACCOUNTS = [
         {"id": "4345046758", "pass": "EF8AF3599E8590D76EB569EAE1916D358153E6ECCA46A6A8D2E674837DFE3EEB"},
         {"id": "4345098548", "pass": "5ACD54C84D78C1D0C8F2BB01057B1A679D62945D0AC59ADCBDCA02EC93C09F89"},
@@ -1488,7 +1495,6 @@ if __name__ == "__main__":
         {"id": "4345121894", "pass": "85EF626D8B9969F572A8C1232A269AAC9FED84EDC795D55A8E430EF290156BD4"},
         {"id": "4345121638", "pass": "C0E711A2D1E6A38D57D0E54F964CF95928DA8715F0CEF012521016B2D9F2F4F6"},
         {"id": "4345130594", "pass": "A79E325CEF7DC235AB4CD9653AA506FBC50D04975D6EC0BA21D07B6351F55F39"},
-        # Last wala upar wale ka duplicate tha, fir bhi maine daal diya hai safety ke liye
         {"id": "4345046758", "pass": "EF8AF3599E8590D76EB569EAE1916D358153E6ECCA46A6A8D2E674837DFE3EEB"},
     ]
 
@@ -1496,42 +1502,26 @@ if __name__ == "__main__":
     
     active_bots = []
 
-    # --- START ALL BOTS (Sab ek sath start honge) ---
+    # 3. Start All Bots
     for acc in ACCOUNTS:
         try:
             # Bot ka thread banana
             bot = FF_CLIENT(acc['id'], acc['pass'])
-            
-            # Daemon True karne se agar main program band karoge to bot bhi band ho jayenge
             bot.daemon = True 
-            
-            # Bot ko start karna (Ye background me chalega)
             bot.start()
-            
-            # List me save karna taki track kar sakein
             active_bots.append(bot)
-            
-            # Thoda sa gap taki server block na kare (0.2 seconds)
             time.sleep(0.2)
-            
         except Exception as e:
             print(f"[ERROR] Bot {acc['id']} start nahi ho paya: {e}")
 
     print("\n[SUCCESS] Sare Bots Background me Start ho chuke hain!")
 
-    # --- KEEP ALIVE LOOP (Ye program ko band hone se rokega) ---
+    # 4. Keep Alive Loop (Prevent Script from Exiting)
     try:
         while True:
-            time.sleep(10) # CPU bachane ke liye sleep
-            
-            # Check karna ki kitne bots abhi bhi chal rahe hain
+            time.sleep(10) 
             alive_count = sum(1 for t in active_bots if t.is_alive())
-            
-            if alive_count > 0:
-                print(f"[STATUS] Abhi {alive_count} Bots Online hain...")
-            else:
-                print("[ALERT] Sare bots band ho gaye hain.")
-                break
-                
+            # Agar logs check karne hain to ye line uncomment karo:
+            # print(f"[STATUS] {alive_count} Bots running...")
     except KeyboardInterrupt:
         print("\n[STOP] Program band kiya ja raha hai...")
