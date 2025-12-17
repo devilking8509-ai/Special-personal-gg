@@ -365,14 +365,24 @@ def parse_results(parsed_results):
     for result in parsed_results:
         field_data = {}
         field_data["wire_type"] = result.wire_type
-        if result.wire_type == "varint":
-            field_data["data"] = result.data
-        if result.wire_type == "string":
-            field_data["data"] = result.data
-        if result.wire_type == "bytes":
-            field_data["data"] = result.data
-        elif result.wire_type == "length_delimited":
+        
+        # Recursively parse nested messages
+        if result.wire_type == "length_delimited":
             field_data["data"] = parse_results(result.data.results)
+        
+        # Handle bytes/strings properly for JSON serialization
+        elif isinstance(result.data, bytes):
+            try:
+                # Koshish karein UTF-8 string (jaise IP address) banane ki
+                field_data["data"] = result.data.decode('utf-8')
+            except:
+                # Agar fail ho jaye (binary data), to Hex string bana dein
+                field_data["data"] = result.data.hex()
+        
+        # Handle other types (varint, etc.)
+        else:
+            field_data["data"] = result.data
+            
         result_dict[result.field] = field_data
     return result_dict
 
