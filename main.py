@@ -24,65 +24,102 @@ import sys
 import subprocess
 import os
 import time
+# ==========================================
+# PASTE THIS CODE IN PLACE OF THE DELETED IMPORT
+# ==========================================
 
-# --- AUTO INSTALLER START ---
-def install_and_restart(package_name):
-    print(f"[AUTO-INSTALL] '{package_name}' नहीं मिला. अभी डाउनलोड कर रहा हूँ...")
-    try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
-        print(f"[SUCCESS] '{package_name}' इंस्टॉल हो गया!")
-        print("[INFO] प्रोग्राम को रीस्टार्ट किया जा रहा है...")
-        time.sleep(1)
-        os.execl(sys.executable, sys.executable, *sys.argv)
-    except Exception as e:
-        print(f"[ERROR] {package_name} इंस्टॉल नहीं हो पाया: {e}")
+class ProtoField:
+    def __init__(self, field, wire_type, data):
+        self.field = field
+        self.wire_type = wire_type
+        self.data = data
 
-# जरुरी लाइब्रेरीज की लिस्ट
-required_packages = [
-    ("google.protobuf", "protobuf"),         # Protobuf के लिए
-    ("jwt", "pyjwt"),                        # JWT के लिए
-    ("requests", "requests"),                # Requests के लिए
-    ("psutil", "psutil"),                    # Psutil के लिए
-    ("Crypto", "pycryptodome"),              # Crypto के लिए (AES)
-    ("protobuf_decoder", "protobuf-decoder") # आपकी वाली एरर के लिए
-]
+class Parser:
+    def __init__(self):
+        pass
 
-# चेक करना और इंस्टॉल करना
-for import_name, install_name in required_packages:
-    try:
-        __import__(import_name)
-    except ImportError:
-        install_and_restart(install_name)
-# --- AUTO INSTALLER END ---
+    def parse(self, data):
+        # Convert hex string to bytes if needed
+        if isinstance(data, str):
+            try:
+                data = bytes.fromhex(data)
+            except ValueError:
+                return []
+        
+        results = []
+        pos = 0
+        length = len(data)
 
-# --- अब यहाँ से आपके ओरिजिनल IMPORTS शुरू ---
-import threading
-import jwt
-import random
-from threading import Thread
-import json
-import requests 
-import google.protobuf
-# अब यह लाइन एरर नहीं देगी क्योंकि ऊपर ऑटो-इंस्टॉलर इसे डाउनलोड कर लेगा
-from protobuf_decoder.protobuf_decoder import Parser 
-import datetime
-from google.protobuf.json_format import MessageToJson
-import my_message_pb2
-import data_pb2
-import base64
-import logging
-import re
-import socket
-from google.protobuf.timestamp_pb2 import Timestamp
-import jwt_generator_pb2
-import binascii
-import psutil
-import MajorLoginRes_pb2
-from time import sleep
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
-import urllib3
-# अपनी बाकी फाइल का कोड यहाँ से जारी रखें...
+        while pos < length:
+            try:
+                # Read Key (Field ID + Wire Type)
+                key, pos = self._read_varint(data, pos)
+                wire_type = key & 0x07
+                field_number = key >> 3
+
+                if wire_type == 0:  # Varint
+                    value, pos = self._read_varint(data, pos)
+                    results.append(ProtoField(field_number, "varint", value))
+                
+                elif wire_type == 1:  # 64-bit
+                    if pos + 8 > length: break
+                    value = data[pos:pos+8]
+                    pos += 8
+                    results.append(ProtoField(field_number, "fixed64", value))
+                
+                elif wire_type == 2:  # Length Delimited (String/Bytes/Nested)
+                    str_len, pos = self._read_varint(data, pos)
+                    if pos + str_len > length: break
+                    value = data[pos:pos+str_len]
+                    pos += str_len
+                    
+                    # Try to recursively parse (simple check)
+                    try:
+                        sub_results = self.parse(value)
+                        if sub_results:
+                            # Create a nested object structure if needed by your script
+                            class NestedNode:
+                                def __init__(self, res): self.results = res
+                            results.append(ProtoField(field_number, "length_delimited", NestedNode(sub_results)))
+                        else:
+                            results.append(ProtoField(field_number, "bytes", value))
+                    except:
+                        results.append(ProtoField(field_number, "bytes", value))
+
+                elif wire_type == 5:  # 32-bit
+                    if pos + 4 > length: break
+                    value = data[pos:pos+4]
+                    pos += 4
+                    results.append(ProtoField(field_number, "fixed32", value))
+                
+                else:
+                    # Unknown wire type, skip or break
+                    break
+            except Exception:
+                break
+        
+        return results
+
+    def _read_varint(self, data, pos):
+        result = 0
+        shift = 0
+        while True:
+            if pos >= len(data):
+                raise Exception("EOF")
+            byte = data[pos]
+            pos += 1
+            result |= (byte & 0x7F) << shift
+            if not (byte & 0x80):
+                return result, pos
+            shift += 7
+            if shift >= 64:
+                raise Exception("Varint too long")
+
+# ==========================================
+# END OF PASTE
+# ==========================================
+
+
 
 import MajorLoginRes_pb2
 from time import sleep
