@@ -1195,13 +1195,22 @@ class FF_CLIENT(threading.Thread):
         else:
             return final_result
 
-    # 1. New Logic: Dynamic Payload Generator (IP Spoofing Enabled)
+    # ======================================================
+    # FIXED DYNAMIC LOGIN (Datetime Conflict Solved)
+    # ======================================================
     def EncRypTMajoRLoGin_Dynamic(self, open_id, access_token):
         try:
-            # Pb2 folder hona jaruri hai!
+            # Local import to avoid conflict with 'from byte import *'
+            import datetime as dt_fix 
+            
+            # Pb2 folder import
             from Pb2 import MajoRLoGinrEq_pb2
+            
             major_login = MajoRLoGinrEq_pb2.MajorLogin()
-            major_login.event_time = str(datetime.datetime.now())[:-7]
+            
+            # Use local datetime alias
+            major_login.event_time = str(dt_fix.datetime.now())[:-7]
+            
             major_login.game_name = "free fire"
             major_login.platform_id = 1
             major_login.client_version = "1.118.1"
@@ -1218,9 +1227,9 @@ class FF_CLIENT(threading.Thread):
             major_login.gpu_version = "OpenGL ES 3.1 v1.46"
             major_login.unique_device_id = "Google|34a7dcdf-a7d5-4cb6-8d7e-3b0e448a0c57"
             
-            # --- MAGIC LINE (IP SPOOFING) ---
+            # --- IP SPOOFING ---
             major_login.client_ip = "223.191.51.89" 
-            # --------------------------------
+            # -------------------
             
             major_login.language = "en"
             major_login.open_id = open_id
@@ -1267,7 +1276,7 @@ class FF_CLIENT(threading.Thread):
             # Encrypt using your global function
             return encrypt_api(string.hex())
         except Exception as e:
-            print(f"[ERROR] Protobuf Generation Failed: {e} (Check if Pb2 folder is present)")
+            print(f"[ERROR] Protobuf Generation Failed: {e}")
             return None
 
     def GET_LOGIN_DATA(self, JWT_TOKEN, PAYLOAD):
