@@ -147,6 +147,7 @@ data22 = None
 isroom = False
 isroom2 = False
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+threads = []  # <--- Ye line add karni hai
 
 def encrypt_packet(plain_text, key, iv):
     # Ensure data is bytes
@@ -1096,22 +1097,6 @@ class FF_CLIENT(threading.Thread):
                 break
     
     
-    def connect(self, tok, packet, key, iv, whisper_ip, whisper_port, online_ip, online_port):
-        global clients
-        global socket_client
-        global sent_inv
-        global tempid
-        global leaveee
-        global start_par
-        global nameinv
-        global idinv
-        global senthi
-        global statusinfo
-        global tempdata
-        global pleaseaccept
-        global tempdata1
-        global data22
-        clients = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clients.connect((whisper_ip, whisper_port))
         clients.send(bytes.fromhex(tok))
         thread = threading.Thread(
