@@ -1,6 +1,100 @@
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad,unpad
-from protobuf_decoder.protobuf_decoder import Parser
+# ==========================================
+# important_zitado.py mein PURANI IMPORT LINE KI JAGAH YAH PASTE KAREIN
+# ==========================================
+
+class ProtoField:
+    def __init__(self, field, wire_type, data):
+        self.field = field
+        self.wire_type = wire_type
+        self.data = data
+
+class Parser:
+    def __init__(self):
+        pass
+
+    def parse(self, data):
+        # Convert hex string to bytes if needed
+        if isinstance(data, str):
+            try:
+                data = bytes.fromhex(data)
+            except ValueError:
+                return []
+        
+        results = []
+        pos = 0
+        length = len(data)
+
+        while pos < length:
+            try:
+                # Read Key (Field ID + Wire Type)
+                key, pos = self._read_varint(data, pos)
+                wire_type = key & 0x07
+                field_number = key >> 3
+
+                if wire_type == 0:  # Varint
+                    value, pos = self._read_varint(data, pos)
+                    results.append(ProtoField(field_number, "varint", value))
+                
+                elif wire_type == 1:  # 64-bit
+                    if pos + 8 > length: break
+                    value = data[pos:pos+8]
+                    pos += 8
+                    results.append(ProtoField(field_number, "fixed64", value))
+                
+                elif wire_type == 2:  # Length Delimited (String/Bytes/Nested)
+                    str_len, pos = self._read_varint(data, pos)
+                    if pos + str_len > length: break
+                    value = data[pos:pos+str_len]
+                    pos += str_len
+                    
+                    # Try to recursively parse (simple check)
+                    try:
+                        sub_results = self.parse(value)
+                        if sub_results:
+                            # Create a nested object structure if needed by your script
+                            class NestedNode:
+                                def __init__(self, res): self.results = res
+                            results.append(ProtoField(field_number, "length_delimited", NestedNode(sub_results)))
+                        else:
+                            results.append(ProtoField(field_number, "bytes", value))
+                    except:
+                        results.append(ProtoField(field_number, "bytes", value))
+
+                elif wire_type == 5:  # 32-bit
+                    if pos + 4 > length: break
+                    value = data[pos:pos+4]
+                    pos += 4
+                    results.append(ProtoField(field_number, "fixed32", value))
+                
+                else:
+                    # Unknown wire type, skip or break
+                    break
+            except Exception:
+                break
+        
+        return results
+
+    def _read_varint(self, data, pos):
+        result = 0
+        shift = 0
+        while True:
+            if pos >= len(data):
+                raise Exception("EOF")
+            byte = data[pos]
+            pos += 1
+            result |= (byte & 0x7F) << shift
+            if not (byte & 0x80):
+                return result, pos
+            shift += 7
+            if shift >= 64:
+                raise Exception("Varint too long")
+
+# ==========================================
+# CODE END
+# ==========================================
+
 import json
 key = b'Yg&tc%DEuh6%Zc^8'  # 16-byte AES key
 iv = b'6oyZDr22E3ychjM%'   # 16-byte IV
@@ -77,4 +171,5 @@ def create_protobuf_packet(fields):
         elif isinstance(value, str) or isinstance(value, bytes):
             packet.extend(create_length_delimited_field(field, value))
     
+
     return packet
