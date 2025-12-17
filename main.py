@@ -23,6 +23,8 @@ import os
 import binascii
 import sys
 import subprocess
+import http.server
+import socketserver
 import os
 import time
 # ==========================================
@@ -1457,8 +1459,24 @@ class FF_CLIENT(threading.Thread):
 # (Replace everything from 'with open...' to the end)
 # ==========================================
 
+# --- DUMMY SERVER TO KEEP RENDER HAPPY ---
+def start_dummy_server():
+    try:
+        PORT = int(os.environ.get("PORT", 8080))
+        Handler = http.server.SimpleHTTPRequestHandler
+        with socketserver.TCPServer(("", PORT), Handler) as httpd:
+            print(f"[SERVER] Dummy server running on port {PORT}")
+            httpd.serve_forever()
+    except Exception as e:
+        print(f"[SERVER] Error starting dummy server: {e}")
+
 if __name__ == "__main__":
     
+    # Start Dummy Server in Background
+    server_thread = threading.Thread(target=start_dummy_server)
+    server_thread.daemon = True
+    server_thread.start()
+
     # --- YAHAN TUMHARE DIYE HUE SAARE ACCOUNTS HAIN ---
     ACCOUNTS = [
         {"id": "4345046758", "pass": "EF8AF3599E8590D76EB569EAE1916D358153E6ECCA46A6A8D2E674837DFE3EEB"},
