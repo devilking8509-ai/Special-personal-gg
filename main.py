@@ -331,25 +331,6 @@ def get_random_avatar():
         random_avatar = random.choice(avatar_list)
         return  random_avatar
 
-class FF_CLIENT(threading.Thread):
-    def __init__(self, id, password):
-        self.id = id
-        self.password = password
-        self.key = None
-        self.iv = None
-        self.get_tok()
-    def connect(self, tok, host, port, packet, key, iv):
-        global clients
-        clients = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        port = int(port)
-        clients.connect((host, port))
-        clients.send(bytes.fromhex(tok))
-
-        while True:
-            data = clients.recv(9999)
-            if data == b"":
-                print("Connection closed by remote host")
-                break
 def get_available_room(input_text):
     try:
         parsed_results = Parser().parse(input_text)
@@ -1091,10 +1072,40 @@ class FF_CLIENT(threading.Thread):
                 
                     
             if data2 == b"":
-                
                 print("Connection closed by remote host")
                 restart_program()
                 break
+    
+    # --- CONNECT FUNCTION RESTORED ---
+    def connect(self, tok, packet, key, iv, whisper_ip, whisper_port, online_ip, online_port):
+        global clients
+        global threads
+        
+        try:
+            clients = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            clients.connect((whisper_ip, whisper_port))
+            clients.send(bytes.fromhex(tok))
+            
+            # Start sockf1 in background
+            thread = threading.Thread(
+                target=self.sockf1, args=(tok, online_ip, online_port, "anything", key, iv)
+            )
+            threads.append(thread)
+            thread.start()
+
+            # Keep Main Connection Alive
+            while True:
+                data = clients.recv(9999)
+                if data == b"":
+                    print("Connection closed by remote host")
+                    break
+                
+                # Glori Command Support (Optional)
+                if "1200" in data.hex()[0:4] and b"/glori" in data:
+                    pass 
+
+        except Exception as e:
+            print(f"[ERROR] Connection lost: {e}")
     
     
         clients.connect((whisper_ip, whisper_port))
