@@ -21,7 +21,69 @@ import jwt_generator_pb2
 import os
 import binascii
 import sys
+import subprocess
+import os
+import time
+
+# --- AUTO INSTALLER START ---
+def install_and_restart(package_name):
+    print(f"[AUTO-INSTALL] '{package_name}' नहीं मिला. अभी डाउनलोड कर रहा हूँ...")
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+        print(f"[SUCCESS] '{package_name}' इंस्टॉल हो गया!")
+        print("[INFO] प्रोग्राम को रीस्टार्ट किया जा रहा है...")
+        time.sleep(1)
+        os.execl(sys.executable, sys.executable, *sys.argv)
+    except Exception as e:
+        print(f"[ERROR] {package_name} इंस्टॉल नहीं हो पाया: {e}")
+
+# जरुरी लाइब्रेरीज की लिस्ट
+required_packages = [
+    ("google.protobuf", "protobuf"),         # Protobuf के लिए
+    ("jwt", "pyjwt"),                        # JWT के लिए
+    ("requests", "requests"),                # Requests के लिए
+    ("psutil", "psutil"),                    # Psutil के लिए
+    ("Crypto", "pycryptodome"),              # Crypto के लिए (AES)
+    ("protobuf_decoder", "protobuf-decoder") # आपकी वाली एरर के लिए
+]
+
+# चेक करना और इंस्टॉल करना
+for import_name, install_name in required_packages:
+    try:
+        __import__(import_name)
+    except ImportError:
+        install_and_restart(install_name)
+# --- AUTO INSTALLER END ---
+
+# --- अब यहाँ से आपके ओरिजिनल IMPORTS शुरू ---
+import threading
+import jwt
+import random
+from threading import Thread
+import json
+import requests 
+import google.protobuf
+# अब यह लाइन एरर नहीं देगी क्योंकि ऊपर ऑटो-इंस्टॉलर इसे डाउनलोड कर लेगा
+from protobuf_decoder.protobuf_decoder import Parser 
+import datetime
+from google.protobuf.json_format import MessageToJson
+import my_message_pb2
+import data_pb2
+import base64
+import logging
+import re
+import socket
+from google.protobuf.timestamp_pb2 import Timestamp
+import jwt_generator_pb2
+import binascii
 import psutil
+import MajorLoginRes_pb2
+from time import sleep
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+import urllib3
+# अपनी बाकी फाइल का कोड यहाँ से जारी रखें...
+
 import MajorLoginRes_pb2
 from time import sleep
 from Crypto.Cipher import AES
