@@ -1397,106 +1397,68 @@ class FF_CLIENT(threading.Thread):
         print(f"[ERROR] get_tok failed: {e}")
         return None, None, None
         
-##with open('spidey.txt', 'r') as file:
-#  data = json.load(file)
-#  ids_passwords = list(data.items())
-def run_client(id, password):
-    print(f"ID: {id}, Password: {password}")
-    client = FF_CLIENT(id, password)
-    client.start()
-    
-max_range = 300000
-# num_clients = len(ids_passwords)
-num_threads = 1
-start = 0
-end = max_range
-step = (end - start) // num_threads
-threads = []
-# for i in range(num_threads):
-#     ids_for_thread = ids_passwords[i % num_clients]
-#     id, password = ids_for_thread
-#     thread = threading.Thread(target=run_client, args=(id, password))
-#     threads.append(thread)
-#     time.sleep(3)
-#     thread.start()
+# ==========================================
+# PASTE THIS AT THE VERY BOTTOM OF YOUR FILE
+# (Replace everything from 'with open...' to the end)
+# ==========================================
 
-# for thread in threads:
-#     thread.join()
-    
 if __name__ == "__main__":
+    
+    # --- YAHAN TUMHARE DIYE HUE SAARE ACCOUNTS HAIN ---
+    ACCOUNTS = [
+        {"id": "4345046758", "pass": "EF8AF3599E8590D76EB569EAE1916D358153E6ECCA46A6A8D2E674837DFE3EEB"},
+        {"id": "4345098548", "pass": "5ACD54C84D78C1D0C8F2BB01057B1A679D62945D0AC59ADCBDCA02EC93C09F89"},
+        {"id": "4345097112", "pass": "CDDA11D16A2A37DAD73267A67F00956A7C3C02109BCF6AEF4A95C1E0D9FA2758"},
+        {"id": "4345110250", "pass": "8786F80392F4895D3DC440C2C944153E07CD03411A55A35FC4CA0A756545937F"},
+        {"id": "4345115969", "pass": "95CCC1DC0EA4492AD3021CF10172E7098D6A76E02FD440D555B6493E88F6678A"},
+        {"id": "4345116942", "pass": "9E8CB0D317DAB9F9E44345F10AC67803E25835FC73938C5B7EC65012CCA90457"},
+        {"id": "4345121894", "pass": "85EF626D8B9969F572A8C1232A269AAC9FED84EDC795D55A8E430EF290156BD4"},
+        {"id": "4345121638", "pass": "C0E711A2D1E6A38D57D0E54F964CF95928DA8715F0CEF012521016B2D9F2F4F6"},
+        {"id": "4345130594", "pass": "A79E325CEF7DC235AB4CD9653AA506FBC50D04975D6EC0BA21D07B6351F55F39"},
+        # Last wala upar wale ka duplicate tha, fir bhi maine daal diya hai safety ke liye
+        {"id": "4345046758", "pass": "EF8AF3599E8590D76EB569EAE1916D358153E6ECCA46A6A8D2E674837DFE3EEB"},
+    ]
+
+    print(f"[INFO] Total {len(ACCOUNTS)} Bots Launch kiye ja rahe hain...")
+    
+    active_bots = []
+
+    # --- START ALL BOTS (Sab ek sath start honge) ---
+    for acc in ACCOUNTS:
+        try:
+            # Bot ka thread banana
+            bot = FF_CLIENT(acc['id'], acc['pass'])
+            
+            # Daemon True karne se agar main program band karoge to bot bhi band ho jayenge
+            bot.daemon = True 
+            
+            # Bot ko start karna (Ye background me chalega)
+            bot.start()
+            
+            # List me save karna taki track kar sakein
+            active_bots.append(bot)
+            
+            # Thoda sa gap taki server block na kare (0.2 seconds)
+            time.sleep(0.2)
+            
+        except Exception as e:
+            print(f"[ERROR] Bot {acc['id']} start nahi ho paya: {e}")
+
+    print("\n[SUCCESS] Sare Bots Background me Start ho chuke hain!")
+
+    # --- KEEP ALIVE LOOP (Ye program ko band hone se rokega) ---
     try:
-        client_thread = FF_CLIENT(id="4211697689", password="C24D431F1FB8CA013D7D803F4E3B481C7FD7975C366BCD96E90FE13FB07648F5")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-
-        client_thread = FF_CLIENT(id="4211706224", password="AEEF9ED92F961999EED720FD88754329F07B9C471E01A940447D8AFD87D2D956")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="46156555118", password="2EAE76C71AC4A70E9388C905B23D5EB24C483366E46156555118D779343D9C63")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4211723932", password="F721CFEB4CC4CF0F939974E5EF3FDA051AA8EFA33199B0C6CF17F64D2BC6276A")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4211734018", password="5F8C8F60DE743B22071210948607B147D6B72BAE2E1CA104115FF0280C9B75CE")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4207731065", password="8A3936D3DB6A0A5F6DCEA877673608BAA6089C882A28C5402D17E13975D1468B")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-
-        client_thread = FF_CLIENT(id="4207731255", password="20182E20833D3DAFC10AF7F20BB13924CC49DE3106816717A9B42C23AAC09120")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4207731359", password="F2B4B45AE597B04C46E070625E02906374ABF3F3B05598DC085FB33D94805DD2")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4207731636", password="3B678572EBDFA59DB8B1B91A0900DE0625F925D7ACA72C14C306A3165C7DD34F")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4207731802", password="496AE1A966DB31A5CFEEA934A0392A363526662BC6229E478870E9CB7580956B")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4207731990", password="2C033BD76F0185327262C42104F424AA4FC04EA4EF285C7C19434598888B25B5")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4207733005", password="2FA2D07D9876317CAA3812393DDD84AAE6A63C9E26FD665F500DD9715284502E")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}") 
-        
-        client_thread = FF_CLIENT(id="4207733298", password="857798E6CA89018BFFF47E550A5AC0F17A6001718A88E2979CA6E973342F6486")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4207733507", password="CC1545CA024293484DB237FFF5B445E1DF5313FD4D4836AD74A47788A07B8479")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        
-        client_thread = FF_CLIENT(id="4207734841", password="FA3429B350A33942E04897D5562CBE14B680E5055A885972D61D83C08CD0F600")
-        client_thread.start()
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")                        
-        restart_program()
+        while True:
+            time.sleep(10) # CPU bachane ke liye sleep
+            
+            # Check karna ki kitne bots abhi bhi chal rahe hain
+            alive_count = sum(1 for t in active_bots if t.is_alive())
+            
+            if alive_count > 0:
+                print(f"[STATUS] Abhi {alive_count} Bots Online hain...")
+            else:
+                print("[ALERT] Sare bots band ho gaye hain.")
+                break
+                
+    except KeyboardInterrupt:
+        print("\n[STOP] Program band kiya ja raha hai...")
