@@ -1070,12 +1070,7 @@ class FF_CLIENT(threading.Thread):
 
                 except Exception as e:
                     print(f"Error in /glori command: {e}")
-
-
-
-                        
-
-    def GET_PAYLOAD_BY_DATA(self,JWT_TOKEN , NEW_ACCESS_TOKEN,date):
+                        def GET_PAYLOAD_BY_DATA(self,JWT_TOKEN , NEW_ACCESS_TOKEN,date):
         token_payload_base64 = JWT_TOKEN.split('.')[1]
         token_payload_base64 += '=' * ((4 - len(token_payload_base64) % 4) % 4)
         decoded_payload = base64.urlsafe_b64decode(token_payload_base64).decode('utf-8')
