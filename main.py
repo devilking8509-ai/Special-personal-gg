@@ -5,7 +5,7 @@ from threading import Thread
 import json
 import requests 
 import google.protobuf
-from protobuf_decoder.protobuf_decoder import Parser
+from protobuf_decoder import Parser
 import json
 import datetime
 import datetime
