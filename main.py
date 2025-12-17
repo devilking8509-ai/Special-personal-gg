@@ -1348,7 +1348,19 @@ class FF_CLIENT(threading.Thread):
     def get_tok(self):
        global g_token
        try:
-        token, key, iv, Timestamp, whisper_ip, whisper_port, online_ip, online_port = self.guest_token(self.id, self.password)
+        # === यहाँ हमने बदलाव किया है ===
+        # पुराना कोड सीधे unpack कर रहा था, जिससे क्रैश हो रहा था
+        result = self.guest_token(self.id, self.password)
+        
+        # अगर result False है (लॉगइन फेल), तो हम रुक जाएंगे और क्रैश नहीं होने देंगे
+        if not result:
+            print(f"[ERROR] Login Failed for ID: {self.id}")
+            return None, None, None
+            
+        # अगर सब सही है, तो वैल्यूज निकाल लो
+        token, key, iv, Timestamp, whisper_ip, whisper_port, online_ip, online_port = result
+        # ================================
+
         g_token = token
         print(whisper_ip, whisper_port)
 
@@ -1378,7 +1390,7 @@ class FF_CLIENT(threading.Thread):
         print("Final token constructed successfully.")
 
         # Connect only if final_token is successfully built
-        self.connect(final_token, 'anything', key, iv, whisper_ip, whisper_port, online_ip, online_port)
+        self.connect(final_token, final_token, key, iv, whisper_ip, whisper_port, online_ip, online_port)
         return final_token, key, iv
 
        except Exception as e:
