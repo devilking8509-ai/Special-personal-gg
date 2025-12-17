@@ -15,6 +15,7 @@ import data_pb2
 import base64
 import logging
 import re
+from Pb2 import MajoRLoGinrEq_pb2 # Ye file honi chahiye folder me
 import socket
 from google.protobuf.timestamp_pb2 import Timestamp
 import jwt_generator_pb2
@@ -1181,33 +1182,9 @@ class FF_CLIENT(threading.Thread):
     # PASTE THIS IN THE EMPTY SPACE
     # -----------------------------------------------------------
 
-    def GET_PAYLOAD_BY_DATA(self, JWT_TOKEN, NEW_ACCESS_TOKEN, date):
-        token_payload_base64 = JWT_TOKEN.split('.')[1]
-        token_payload_base64 += '=' * ((4 - len(token_payload_base64) % 4) % 4)
-        decoded_payload = base64.urlsafe_b64decode(token_payload_base64).decode('utf-8')
-        decoded_payload = json.loads(decoded_payload)
-        
-        NEW_EXTERNAL_ID = decoded_payload['external_id']
-        SIGNATURE_MD5 = decoded_payload['signature_md5']
-        
-        now = datetime.now()
-        now_str = str(now)
-        now_str = now_str[:len(now_str)-7]
-
-        # CORRECT HEX STRING (Version 1.118.1)
-        payload = bytes.fromhex("1a13323032352d30372d30323031313a30323a3531220966726565206669726528013a07312e3131382e31222c416e64726f6964204f53203131202f204150492d33302028525031412e3230303732302e3031322f47393931425858553241554636294a0848616e6468656c645207416e64726f69645a0457494649609392d3c20772033432307a215175616c636f6d6d20536e6170647261676f6e20383838207c203820436f7265788001d33b8a010f416472656e6f2028544d29203636309201164f70656e474c20455320332e32205640303530322e309a012c416e64726f69647c65306336653534662d313233342d353637382d396162632d646566303132333435363738a201093132372e302e302e31aa0102656eb201203939366136323964626364623339363462653662363937386635643831346462ba010134c2010848616e6468656c64ca01064a696f203447ea014066663930633037656239383135616633306134336234613966363031393531366530653463373033623434303932353136643064656661346365663531663261f00101ca02064a696f203447d2020457494649ca03203734323862323533646566633136343031386336303461316562626665626466e003c0fa06e803e8fb03f003c0fa06f803e8fb038804e8fb038804c0fa069004e8fb039804c0fa06c80403d204262f646174612f6170702f636f6d2e6474732e667265656669726574682d312f6c69622f61726d3634e00401ea044835623839326161616264363838653537316636383830353331313861313632627c2f646174612f6170702f636f6d2e6474732e667265656669726574682d312f626173652e61706bf00403f804028a050236349a05094f70656e474c455333a805ff7fc00504e005dac901ea0507616e64726f6964f205008806f9dba1349006019a060130a2060134b2060134")
-
-        payload = payload.replace(b"2025-07-02 11:02:51", str(now_str).encode())
-        payload = payload.replace(b"ff90c07eb9815af30a43b4a9f6019516e0e4c703b44092516d0defa4cef51f2a", NEW_ACCESS_TOKEN.encode("UTF-8"))
-        payload = payload.replace(b"996a629dbcdb3964be6b6978f5d814db", NEW_EXTERNAL_ID.encode("UTF-8"))
-        payload = payload.replace(b"7428b253defc164018c604a1ebbfebdf", SIGNATURE_MD5.encode("UTF-8"))
-        
-        PAYLOAD = payload.hex()
-        PAYLOAD = encrypt_api(PAYLOAD)
-        PAYLOAD = bytes.fromhex(PAYLOAD)
-        
-        whisper_ip, whisper_port, online_ip, online_port = self.GET_LOGIN_DATA(JWT_TOKEN , PAYLOAD)
-        return whisper_ip, whisper_port, online_ip, online_port
+    # ======================================================
+    # NEW DYNAMIC LOGIN SYSTEM (Fixed for Render/VPS)
+    # ======================================================
 
     def dec_to_hex(self, ask):
         ask_result = hex(ask)
@@ -1218,19 +1195,84 @@ class FF_CLIENT(threading.Thread):
         else:
             return final_result
 
-    def convert_to_hex(self, PAYLOAD):
-        hex_payload = ''.join([f'{byte:02x}' for byte in PAYLOAD])
-        return hex_payload
-
-    def convert_to_bytes(self, PAYLOAD):
-        payload = bytes.fromhex(PAYLOAD)
-        return payload
+    # 1. New Logic: Dynamic Payload Generator (IP Spoofing Enabled)
+    def EncRypTMajoRLoGin_Dynamic(self, open_id, access_token):
+        try:
+            # Pb2 folder hona jaruri hai!
+            from Pb2 import MajoRLoGinrEq_pb2
+            major_login = MajoRLoGinrEq_pb2.MajorLogin()
+            major_login.event_time = str(datetime.datetime.now())[:-7]
+            major_login.game_name = "free fire"
+            major_login.platform_id = 1
+            major_login.client_version = "1.118.1"
+            major_login.system_software = "Android OS 9 / API-28 (PQ3B.190801.10101846/G9650ZHU2ARC6)"
+            major_login.system_hardware = "Handheld"
+            major_login.telecom_operator = "Jio 4G" 
+            major_login.network_type = "WIFI"
+            major_login.screen_width = 1920
+            major_login.screen_height = 1080
+            major_login.screen_dpi = "280"
+            major_login.processor_details = "ARM64 FP ASIMD AES VMH | 2865 | 4"
+            major_login.memory = 3003
+            major_login.gpu_renderer = "Adreno (TM) 640"
+            major_login.gpu_version = "OpenGL ES 3.1 v1.46"
+            major_login.unique_device_id = "Google|34a7dcdf-a7d5-4cb6-8d7e-3b0e448a0c57"
+            
+            # --- MAGIC LINE (IP SPOOFING) ---
+            major_login.client_ip = "223.191.51.89" 
+            # --------------------------------
+            
+            major_login.language = "en"
+            major_login.open_id = open_id
+            major_login.open_id_type = "4"
+            major_login.device_type = "Handheld"
+            memory_available = major_login.memory_available
+            memory_available.version = 55
+            memory_available.hidden_value = 81
+            major_login.access_token = access_token
+            major_login.platform_sdk_id = 1
+            major_login.network_operator_a = "Jio 4G"
+            major_login.network_type_a = "WIFI"
+            major_login.client_using_version = "7428b253defc164018c604a1ebbfebdf" 
+            major_login.external_storage_total = 36235
+            major_login.external_storage_available = 31335
+            major_login.internal_storage_total = 2519
+            major_login.internal_storage_available = 703
+            major_login.game_disk_storage_available = 25010
+            major_login.game_disk_storage_total = 26628
+            major_login.external_sdcard_avail_storage = 32992
+            major_login.external_sdcard_total_storage = 36235
+            major_login.login_by = 3
+            major_login.library_path = "/data/app/com.dts.freefireth-YPKM8jHEwAJlhpmhDhv5MQ==/lib/arm64"
+            major_login.reg_avatar = 1
+            major_login.library_token = "5b892aaabd688e571f688053118a162b|/data/app/com.dts.freefireth-YPKM8jHEwAJlhpmhDhv5MQ==/base.apk"
+            major_login.channel_type = 3
+            major_login.cpu_type = 2
+            major_login.cpu_architecture = "64"
+            major_login.client_version_code = "2019118695"
+            major_login.graphics_api = "OpenGLES2"
+            major_login.supported_astc_bitset = 16383
+            major_login.login_open_id_type = 4
+            major_login.analytics_detail = b"FwQVTgUPX1UaUllDDwcWCRBpWA0FUgsvA1snWlBaO1kFYg=="
+            major_login.loading_time = 13564
+            major_login.release_channel = "android"
+            major_login.extra_info = "KqsHTymw5/5GB23YGniUYN2/q47GATrq7eFeRatf0NkwLKEMQ0PK5BKEk72dPflAxUlEBir6Vtey83XqF593qsl8hwY="
+            major_login.android_engine_init_flag = 110009
+            major_login.if_push = 1
+            major_login.is_vpn = 1
+            major_login.origin_platform_type = "4"
+            major_login.primary_platform_type = "4"
+            
+            string = major_login.SerializeToString()
+            # Encrypt using your global function
+            return encrypt_api(string.hex())
+        except Exception as e:
+            print(f"[ERROR] Protobuf Generation Failed: {e} (Check if Pb2 folder is present)")
+            return None
 
     def GET_LOGIN_DATA(self, JWT_TOKEN, PAYLOAD):
-        print("[DEBUG] GET_LOGIN_DATA called...")
         url = "https://client.ind.freefiremobile.com/GetLoginData"
         headers = {
-            'Expect': '100-continue',
             'Authorization': f'Bearer {JWT_TOKEN}',
             'X-Unity-Version': '2018.4.11f1',
             'X-GA': 'v1 1',
@@ -1238,34 +1280,24 @@ class FF_CLIENT(threading.Thread):
             'Content-Type': 'application/x-www-form-urlencoded',
             'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 11; ASUS_Z01QD Build/PI)',
             'Host': 'client.ind.freefiremobile.com',
-            'Connection': 'close',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'close'
         }
-        
-        max_retries = 3
-        attempt = 0
-        while attempt < max_retries:
-            try:
-                response = requests.post(url, headers=headers, data=PAYLOAD, verify=False, timeout=15)
-                response.raise_for_status()
-                x = response.content.hex()
-                json_result = get_available_room(x)
-                parsed_data = json.loads(json_result)
-                
-                if '32' in parsed_data and '14' in parsed_data:
-                    whisper_address = parsed_data['32']['data']
-                    online_address = parsed_data['14']['data']
-                    online_ip = online_address[:len(online_address) - 6]
-                    whisper_ip = whisper_address[:len(whisper_address) - 6]
-                    online_port = int(online_address[len(online_address) - 5:])
-                    whisper_port = int(whisper_address[len(whisper_address) - 5:])
-                    return whisper_ip, whisper_port, online_ip, online_port
-                else:
-                    return None, None, None, None
-            except requests.RequestException:
-                attempt += 1
-                time.sleep(2)
-        return None, None, None, None
+        try:
+            response = requests.post(url, headers=headers, data=PAYLOAD, verify=False, timeout=15)
+            x = response.content.hex()
+            json_result = get_available_room(x)
+            parsed_data = json.loads(json_result)
+            if '32' in parsed_data and '14' in parsed_data:
+                whisper_address = parsed_data['32']['data']
+                online_address = parsed_data['14']['data']
+                online_ip = online_address[:len(online_address) - 6]
+                whisper_ip = whisper_address[:len(whisper_address) - 6]
+                online_port = int(online_address[len(online_address) - 5:])
+                whisper_port = int(whisper_address[len(whisper_address) - 5:])
+                return whisper_ip, whisper_port, online_ip, online_port
+            return None, None, None, None
+        except:
+            return None, None, None, None
 
     def guest_token(self, uid, password):
         url = "https://100067.connect.garena.com/oauth/guest/token/grant"
@@ -1273,7 +1305,6 @@ class FF_CLIENT(threading.Thread):
             "Host": "100067.connect.garena.com",
             "User-Agent": "GarenaMSDK/4.0.19P4(G011A ;Android 10;en;EN;)",
             "Content-Type": "application/x-www-form-urlencoded",
-            "Accept-Encoding": "gzip, deflate, br",
             "Connection": "close"
         }
         data = {
@@ -1290,8 +1321,7 @@ class FF_CLIENT(threading.Thread):
             NEW_ACCESS_TOKEN = data.get('access_token')
             NEW_OPEN_ID = data.get('open_id')
             
-            if not NEW_ACCESS_TOKEN:
-                return False
+            if not NEW_ACCESS_TOKEN: return False
 
             OLD_ACCESS_TOKEN = "ff90c07eb9815af30a43b4a9f6019516e0e4c703b44092516d0defa4cef51f2a"
             OLD_OPEN_ID = "996a629dbcdb3964be6b6978f5d814db"
@@ -1306,37 +1336,40 @@ class FF_CLIENT(threading.Thread):
             'ReleaseVersion': 'OB51',
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-GA': 'v1 1',
-            'Content-Length': '928',
             'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 11; ASUS_Z01QD Build/PI)',
             'Host': 'loginbp.common.ggbluefox.com',
             'Connection': 'Keep-Alive',
             'Accept-Encoding': 'gzip'
         }
         
-        data = bytes.fromhex('1a13323032352d30372d30323031313a30323a3531220966726565206669726528013a07312e3131382e31222c416e64726f6964204f53203131202f204150492d33302028525031412e3230303732302e3031322f47393931425858553241554636294a0848616e6468656c645207416e64726f69645a0457494649609392d3c20772033432307a215175616c636f6d6d20536e6170647261676f6e20383838207c203820436f7265788001d33b8a010f416472656e6f2028544d29203636309201164f70656e474c20455320332e32205640303530322e309a012c416e64726f69647c65306336653534662d313233342d353637382d396162632d646566303132333435363738a201093132372e302e302e31aa0102656eb201203939366136323964626364623339363462653662363937386635643831346462ba010134c2010848616e6468656c64ca01064a696f203447ea014066663930633037656239383135616633306134336234613966363031393531366530653463373033623434303932353136643064656661346365663531663261f00101ca02064a696f203447d2020457494649ca03203734323862323533646566633136343031386336303461316562626665626466e003c0fa06e803e8fb03f003c0fa06f803e8fb038804e8fb038804c0fa069004e8fb039804c0fa06c80403d204262f646174612f6170702f636f6d2e6474732e667265656669726574682d312f6c69622f61726d3634e00401ea044835623839326161616264363838653537316636383830353331313861313632627c2f646174612f6170702f636f6d2e6474732e667265656669726574682d312f626173652e61706bf00403f804028a050236349a05094f70656e474c455333a805ff7fc00504e005dac901ea0507616e64726f6964f205008806f9dba1349006019a060130a2060134b2060134')
+        # Use New Dynamic Payload
+        encrypted_hex_payload = self.EncRypTMajoRLoGin_Dynamic(NEW_OPEN_ID, NEW_ACCESS_TOKEN)
         
-        data = data.replace(OLD_OPEN_ID.encode(), NEW_OPEN_ID.encode())
-        data = data.replace(OLD_ACCESS_TOKEN.encode(), NEW_ACCESS_TOKEN.encode())
-        d = encrypt_api(data.hex())
-        Final_Payload = bytes.fromhex(d)
+        if not encrypted_hex_payload:
+            return False
+
+        Final_Payload = bytes.fromhex(encrypted_hex_payload)
         
         URL = "https://loginbp.ggblueshark.com/MajorLogin"
-
         try:
             RESPONSE = requests.post(URL, headers=headers, data=Final_Payload, verify=False, timeout=15)
-            combined_timestamp, key, iv, BASE64_TOKEN = self.parse_my_message(RESPONSE.content)
-            if RESPONSE.status_code == 200:
-                if len(RESPONSE.text) < 10:
-                    return False
-                whisper_ip, whisper_port, online_ip, online_port = self.GET_PAYLOAD_BY_DATA(BASE64_TOKEN, NEW_ACCESS_TOKEN, 1)
-                self.key = key
-                self.iv = iv
-                print(f"[SUCCESS] Key: {key}, IV: {iv}")
-                return(BASE64_TOKEN, key, iv, combined_timestamp, whisper_ip, whisper_port, online_ip, online_port)
-            else:
+            
+            if RESPONSE.status_code != 200:
+                print(f"[SERVER REJECT] Status: {RESPONSE.status_code} (Check IP)")
                 return False
+
+            combined_timestamp, key, iv, BASE64_TOKEN = self.parse_my_message(RESPONSE.content)
+            
+            if not BASE64_TOKEN:
+                return False
+
+            whisper_ip, whisper_port, online_ip, online_port = self.GET_LOGIN_DATA(BASE64_TOKEN, Final_Payload)
+            self.key = key
+            self.iv = iv
+            return(BASE64_TOKEN, key, iv, combined_timestamp, whisper_ip, whisper_port, online_ip, online_port)
+        
         except Exception as e:
-            print(f"[ERROR] TOKEN_MAKER failed: {e}")
+            print(f"[ERROR] TOKEN_MAKER: {e}")
             return False
     
     def time_to_seconds(hours, minutes, seconds):
